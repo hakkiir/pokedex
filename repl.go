@@ -10,6 +10,10 @@ import (
 func startRepl() {
 
 	scanner := bufio.NewScanner(os.Stdin)
+	cfg := config{
+		Next:     "https://pokeapi.co/api/v2/location-area/",
+		Previous: nil,
+	}
 	for {
 		fmt.Print("Pokedex > ")
 		err := scanner.Scan()
@@ -23,10 +27,10 @@ func startRepl() {
 
 		fw := input[0]
 
-		commands := getCommands()
+		commands := getCommands(&cfg)
 
 		if cb, ok := commands[fw]; ok {
-			cb.callback()
+			cb.callback(&cfg)
 		} else {
 			fmt.Println("Unknown command")
 		}
