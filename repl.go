@@ -11,8 +11,8 @@ func startRepl() {
 
 	scanner := bufio.NewScanner(os.Stdin)
 	cfg := config{
-		Next:     "https://pokeapi.co/api/v2/location-area/",
-		Previous: nil,
+		next:     "https://pokeapi.co/api/v2/location-area/",
+		previous: nil,
 	}
 	for {
 		fmt.Print("Pokedex > ")

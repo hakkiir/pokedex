@@ -13,29 +13,8 @@ type cliCommand struct {
 }
 
 type config struct {
-	Next     string
-	Previous *string
-}
-
-func commandExit(cfg *config) error {
-	fmt.Println("Closing the Pokedex... Goodbye!")
-	os.Exit(0)
-	return nil
-}
-
-func commandHelp(cfg *config) error {
-
-	commands := getCommands(cfg)
-
-	fmt.Println()
-	fmt.Println("Welcome to the Pokedex!")
-	fmt.Println("Usage:")
-	fmt.Println()
-	for key, val := range commands {
-		fmt.Printf("%s: %s\n", key, val.description)
-	}
-
-	return nil
+	next     string
+	previous *string
 }
 
 func getCommands(cfg *config) map[string]cliCommand {
@@ -65,27 +44,65 @@ func getCommands(cfg *config) map[string]cliCommand {
 	return commands
 }
 
+func commandExit(cfg *config) error {
+	fmt.Println("Closing the Pokedex... Goodbye!")
+	os.Exit(0)
+	return nil
+}
+
+func commandHelp(cfg *config) error {
+
+	commands := getCommands(cfg)
+
+	fmt.Println()
+	fmt.Println("Welcome to the Pokedex!")
+	fmt.Println("Usage:")
+	fmt.Println()
+	for key, val := range commands {
+		fmt.Printf("%s: %s\n", key, val.description)
+	}
+
+	return nil
+}
+
 func commandMap(cfg *config) error {
-	next, previous, err := pokeapi.CommandMap(cfg.Next)
+
+	//HTTP request and JSON parsing
+	//Currently pokeapi.CommandMap also prints the results.. should probably edit to just return values and do printing here
+	l, err := pokeapi.CommandMap(cfg.next)
+
 	if err != nil {
 		fmt.Println(err)
+		return err
 	}
-	cfg.Next = next
-	cfg.Previous = previous
+
+	for _, loc := range l.Results {
+		fmt.Println(loc.Name)
+	}
+
+	cfg.next = l.Next
+	cfg.previous = l.Previous
 	return nil
 }
 
 func commandMapb(cfg *config) error {
 
-	if cfg.Previous == nil {
+	if cfg.previous == nil {
 		fmt.Println("you're on the first page")
 		return fmt.Errorf("previous page = nil")
 	}
-	next, previous, err := pokeapi.CommandMapb(cfg.Previous)
+
+	l, err := pokeapi.CommandMapb(cfg.previous)
+
 	if err != nil {
 		fmt.Println(err)
 	}
-	cfg.Next = next
-	cfg.Previous = previous
+
+	for _, loc := range l.Results {
+		fmt.Println(loc.Name)
+	}
+
+	cfg.next = l.Next
+	cfg.previous = l.Previous
 	return nil
 }
