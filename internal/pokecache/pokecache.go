@@ -1,6 +1,7 @@
 package pokecache
 
 import (
+	"fmt"
 	"sync"
 	"time"
 )
@@ -16,7 +17,9 @@ type cacheEntry struct {
 }
 
 func NewCache(interval time.Duration) *Cache {
-	c := &Cache{}
+	c := &Cache{
+		entry: make(map[string]cacheEntry),
+	}
 
 	go c.reapLoop(interval)
 
@@ -50,6 +53,9 @@ func (c *Cache) reapLoop(interval time.Duration) {
 		c.mu.Lock()
 		for key, val := range c.entry {
 			if time.Since(val.createdAt) > interval {
+				fmt.Println()
+				fmt.Printf("time sinze entry created: %v", time.Since(val.createdAt))
+				fmt.Println()
 				delete(c.entry, key)
 			}
 		}

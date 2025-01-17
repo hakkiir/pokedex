@@ -5,14 +5,21 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
+
+	pcache "github.com/hakkiir/pokedex/internal/pokecache"
 )
 
 func startRepl() {
 
 	scanner := bufio.NewScanner(os.Stdin)
+
+	c := pcache.NewCache(time.Second * 20)
+
 	cfg := config{
-		next:     "https://pokeapi.co/api/v2/location-area/",
+		next:     "https://pokeapi.co/api/v2/location-area/?offset=0&limit=20",
 		previous: nil,
+		cache:    c,
 	}
 	for {
 		fmt.Print("Pokedex > ")

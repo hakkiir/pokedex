@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
-	"internal/pokeapi"
 	"os"
+
+	pokeapi "github.com/hakkiir/pokedex/internal/pokeapi"
+
+	pcache "github.com/hakkiir/pokedex/internal/pokecache"
 )
 
 type cliCommand struct {
@@ -15,6 +18,7 @@ type cliCommand struct {
 type config struct {
 	next     string
 	previous *string
+	cache    *pcache.Cache
 }
 
 func getCommands(cfg *config) map[string]cliCommand {
@@ -67,9 +71,7 @@ func commandHelp(cfg *config) error {
 
 func commandMap(cfg *config) error {
 
-	//HTTP request and JSON parsing
-	//Currently pokeapi.CommandMap also prints the results.. should probably edit to just return values and do printing here
-	l, err := pokeapi.CommandMap(cfg.next)
+	l, err := pokeapi.CommandMap(cfg.next, cfg.cache)
 
 	if err != nil {
 		fmt.Println(err)
@@ -92,7 +94,7 @@ func commandMapb(cfg *config) error {
 		return fmt.Errorf("previous page = nil")
 	}
 
-	l, err := pokeapi.CommandMapb(cfg.previous)
+	l, err := pokeapi.CommandMapb(cfg.previous, cfg.cache)
 
 	if err != nil {
 		fmt.Println(err)
