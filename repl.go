@@ -14,14 +14,17 @@ func startRepl() {
 
 	scanner := bufio.NewScanner(os.Stdin)
 
-	c := pcache.NewCache(time.Second * 20)
+	c := pcache.NewCache(time.Minute * 5)
+
+	url := "https://pokeapi.co/api/v2/location-area/?offset=0&limit=20"
 
 	cfg := config{
-		next:     "https://pokeapi.co/api/v2/location-area/?offset=0&limit=20",
+		next:     &url,
 		previous: nil,
 		cache:    c,
 	}
 	for {
+		param := ""
 		fmt.Print("Pokedex > ")
 		err := scanner.Scan()
 		if !err {
@@ -33,11 +36,14 @@ func startRepl() {
 		}
 
 		fw := input[0]
+		if len(input) > 1 {
+			param = input[1]
+		}
 
-		commands := getCommands(&cfg)
+		commands := getCommands(&cfg, "")
 
 		if cb, ok := commands[fw]; ok {
-			cb.callback(&cfg)
+			cb.callback(&cfg, param)
 		} else {
 			fmt.Println("Unknown command")
 		}

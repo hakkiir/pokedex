@@ -4,24 +4,23 @@ import (
 	"fmt"
 	"os"
 
-	pokeapi "github.com/hakkiir/pokedex/internal/pokeapi"
-
+	"github.com/hakkiir/pokedex/internal/pokeapi"
 	pcache "github.com/hakkiir/pokedex/internal/pokecache"
 )
 
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(cfg *config) error
+	callback    func(cfg *config, param string) error
 }
 
 type config struct {
-	next     string
+	next     *string
 	previous *string
-	cache    *pcache.Cache
+	cache    pcache.Cache
 }
 
-func getCommands(cfg *config) map[string]cliCommand {
+func getCommands(cfg *config, param string) map[string]cliCommand {
 
 	commands := map[string]cliCommand{
 		"exit": {
@@ -44,19 +43,24 @@ func getCommands(cfg *config) map[string]cliCommand {
 			description: "print previous 20 location areas",
 			callback:    commandMapb,
 		},
+		"explore": {
+			name:        "explore",
+			description: "explore area",
+			callback:    commandExplore,
+		},
 	}
 	return commands
 }
 
-func commandExit(cfg *config) error {
+func commandExit(cfg *config, param string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp(cfg *config) error {
+func commandHelp(cfg *config, param string) error {
 
-	commands := getCommands(cfg)
+	commands := getCommands(cfg, "")
 
 	fmt.Println()
 	fmt.Println("Welcome to the Pokedex!")
@@ -69,9 +73,9 @@ func commandHelp(cfg *config) error {
 	return nil
 }
 
-func commandMap(cfg *config) error {
+func commandMap(cfg *config, param string) error {
 
-	l, err := pokeapi.CommandMap(cfg.next, cfg.cache)
+	l, err := pokeapi.GetLocations(cfg.next, cfg.cache)
 
 	if err != nil {
 		fmt.Println(err)
@@ -87,14 +91,14 @@ func commandMap(cfg *config) error {
 	return nil
 }
 
-func commandMapb(cfg *config) error {
+func commandMapb(cfg *config, param string) error {
 
 	if cfg.previous == nil {
 		fmt.Println("you're on the first page")
 		return fmt.Errorf("previous page = nil")
 	}
 
-	l, err := pokeapi.CommandMapb(cfg.previous, cfg.cache)
+	l, err := pokeapi.GetLocations(cfg.previous, cfg.cache)
 
 	if err != nil {
 		fmt.Println(err)
@@ -106,5 +110,22 @@ func commandMapb(cfg *config) error {
 
 	cfg.next = l.Next
 	cfg.previous = l.Previous
+	return nil
+}
+
+func commandExplore(cfg *config, param string) error {
+
+	fmt.Printf("Exploring %s...\n", param)
+	url := "https://pokeapi.co/api/v2/location-area/" + param
+	e, err := pokeapi.Explore(url, cfg.cache)
+
+	if err != nil {
+		fmt.Println("No pokemons found!")
+		fmt.Println(err)
+	}
+	fmt.Println("Found Pokemon:")
+	for _, pokemon := range e.PokemonEncounters {
+		fmt.Println(" - ", pokemon.Pokemon.Name)
+	}
 	return nil
 }

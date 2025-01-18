@@ -7,7 +7,7 @@ import (
 )
 
 type Cache struct {
-	mu    sync.Mutex
+	mu    *sync.Mutex
 	entry map[string]cacheEntry
 }
 
@@ -16,8 +16,9 @@ type cacheEntry struct {
 	val       []byte
 }
 
-func NewCache(interval time.Duration) *Cache {
-	c := &Cache{
+func NewCache(interval time.Duration) Cache {
+	c := Cache{
+		mu:    &sync.Mutex{},
 		entry: make(map[string]cacheEntry),
 	}
 
