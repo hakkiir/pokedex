@@ -94,16 +94,13 @@ func commandHelp(cfg *config, param string) error {
 func commandMap(cfg *config, param string) error {
 
 	l, err := pokeapi.GetLocations(cfg.next, cfg.cache)
-
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-
 	for _, loc := range l.Results {
 		fmt.Println(loc.Name)
 	}
-
 	cfg.next = l.Next
 	cfg.previous = l.Previous
 	return nil
@@ -151,9 +148,7 @@ func commandExplore(cfg *config, param string) error {
 func commandCatch(cfg *config, param string) error {
 
 	fmt.Printf("Throwing a Pokeball at %s...\n", param)
-
 	url := "https://pokeapi.co/api/v2/pokemon/" + param
-
 	p, err := pokeapi.Catch(url, cfg.cache)
 
 	if err != nil {
