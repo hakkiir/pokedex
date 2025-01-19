@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hakkiir/pokedex/internal/pokeapi"
 	pcache "github.com/hakkiir/pokedex/internal/pokecache"
 )
 
@@ -22,6 +23,7 @@ func startRepl() {
 		next:     &url,
 		previous: nil,
 		cache:    c,
+		pokedex:  make(map[string]pokeapi.Pokemon),
 	}
 	for {
 		param := ""

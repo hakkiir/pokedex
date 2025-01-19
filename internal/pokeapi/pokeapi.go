@@ -10,74 +10,6 @@ import (
 	cache "github.com/hakkiir/pokedex/internal/pokecache"
 )
 
-type locationAreas struct {
-	Next     *string `json:"next"`
-	Previous *string `json:"previous"`
-	Results  []struct {
-		Name string `json:"name"`
-		URL  string `json:"url"`
-	} `json:"results"`
-}
-
-type explore struct {
-	EncounterMethodRates []struct {
-		EncounterMethod struct {
-			Name string `json:"name"`
-			URL  string `json:"url"`
-		} `json:"encounter_method"`
-		VersionDetails []struct {
-			Rate    int `json:"rate"`
-			Version struct {
-				Name string `json:"name"`
-				URL  string `json:"url"`
-			} `json:"version"`
-		} `json:"version_details"`
-	} `json:"encounter_method_rates"`
-	GameIndex int `json:"game_index"`
-	ID        int `json:"id"`
-	Location  struct {
-		Name string `json:"name"`
-		URL  string `json:"url"`
-	} `json:"location"`
-	Name  string `json:"name"`
-	Names []struct {
-		Language struct {
-			Name string `json:"name"`
-			URL  string `json:"url"`
-		} `json:"language"`
-		Name string `json:"name"`
-	} `json:"names"`
-	PokemonEncounters []struct {
-		Pokemon struct {
-			Name string `json:"name"`
-			URL  string `json:"url"`
-		} `json:"pokemon"`
-		VersionDetails []struct {
-			EncounterDetails []struct {
-				Chance          int   `json:"chance"`
-				ConditionValues []any `json:"condition_values"`
-				MaxLevel        int   `json:"max_level"`
-				Method          struct {
-					Name string `json:"name"`
-					URL  string `json:"url"`
-				} `json:"method"`
-				MinLevel int `json:"min_level"`
-			} `json:"encounter_details"`
-			MaxChance int `json:"max_chance"`
-			Version   struct {
-				Name string `json:"name"`
-				URL  string `json:"url"`
-			} `json:"version"`
-		} `json:"version_details"`
-	} `json:"pokemon_encounters"`
-}
-
-/*
-	type Config struct {
-		Next     string
-		Previous *string
-	}
-*/
 func GetLocations(cfgUrl *string, c cache.Cache) (locationAreas, error) {
 
 	url := *cfgUrl
@@ -158,4 +90,45 @@ func Explore(url string, c cache.Cache) (explore, error) {
 	fmt.Println("returned values from API!")
 	fmt.Println()
 	return e, nil
+}
+
+func Catch(url string, c cache.Cache) (Pokemon, error) {
+
+	p := Pokemon{}
+
+	//if values are cached, return cached values
+	if val, ok := c.Get(url); ok {
+		err := json.Unmarshal(val, &p)
+		//	if err != nil {
+		//		return l, err
+		//	}
+		fmt.Println()
+		fmt.Println("returned values from Cache!")
+		fmt.Println()
+		return p, err
+	}
+
+	res, err := http.Get(url)
+	if err != nil {
+		log.Fatal(err)
+		return p, err
+	}
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return p, err
+	}
+
+	defer res.Body.Close()
+
+	//add results to cache
+	c.Add(url, body)
+
+	err = json.Unmarshal(body, &p)
+	if err != nil {
+		return p, err
+	}
+	fmt.Println()
+	fmt.Println("returned values from API!")
+	fmt.Println()
+	return p, nil
 }
