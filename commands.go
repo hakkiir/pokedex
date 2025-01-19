@@ -6,6 +6,8 @@ import (
 
 	"github.com/hakkiir/pokedex/internal/pokeapi"
 	pcache "github.com/hakkiir/pokedex/internal/pokecache"
+
+	"math/rand"
 )
 
 type cliCommand struct {
@@ -18,6 +20,7 @@ type config struct {
 	next     *string
 	previous *string
 	cache    pcache.Cache
+	pokedex  map[string]pokeapi.Pokemon
 }
 
 func getCommands(cfg *config, param string) map[string]cliCommand {
@@ -44,9 +47,24 @@ func getCommands(cfg *config, param string) map[string]cliCommand {
 			callback:    commandMapb,
 		},
 		"explore": {
-			name:        "explore",
-			description: "explore area",
+			name:        "explore <location name>",
+			description: "exlore location",
 			callback:    commandExplore,
+		},
+		"catch": {
+			name:        "catch <pokemon>",
+			description: "try to catch a pokemon",
+			callback:    commandCatch,
+		},
+		"inspect": {
+			name:        "inspect <pokemon>",
+			description: "show details about a pokemon",
+			callback:    commandInspect,
+		},
+		"pokedex": {
+			name:        "pokedex",
+			description: "lists all caught pokemons",
+			callback:    commandPokedex,
 		},
 	}
 	return commands
@@ -128,4 +146,61 @@ func commandExplore(cfg *config, param string) error {
 		fmt.Println(" - ", pokemon.Pokemon.Name)
 	}
 	return nil
+}
+
+func commandCatch(cfg *config, param string) error {
+
+	fmt.Printf("Throwing a Pokeball at %s...\n", param)
+
+	url := "https://pokeapi.co/api/v2/pokemon/" + param
+
+	p, err := pokeapi.Catch(url, cfg.cache)
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	catchRate := p.BaseExperience
+	random := rand.Intn(255)
+
+	if random < catchRate {
+		fmt.Printf("%s was caught!\n", p.Name)
+		cfg.pokedex[p.Name] = p
+		fmt.Println("You may now inspect it with the inspect command")
+	} else {
+		fmt.Printf("%s escaped!\n", p.Name)
+	}
+
+	return nil
+}
+
+func commandInspect(cfg *config, param string) error {
+
+	if val, ok := cfg.pokedex[param]; !ok {
+		fmt.Println("You have not caught that pokemon")
+	} else {
+		fmt.Println("Name:", val.Name)
+		fmt.Println("Height:", val.Height)
+		fmt.Println("Weight:", val.Weight)
+		fmt.Println("Stats:")
+		for _, stat := range val.Stats {
+			fmt.Printf(" -%s: %v\n", stat.Stat.Name, stat.BaseStat)
+		}
+		fmt.Println("Types:")
+		for _, t := range val.Types {
+			fmt.Printf(" - %s\n", t.Type.Name)
+		}
+	}
+	return nil
+}
+
+func commandPokedex(cfg *config, param string) error {
+
+	fmt.Println("Your Pokedex:")
+	for _, p := range cfg.pokedex {
+		fmt.Printf(" - %s\n", p.Name)
+	}
+	return nil
+
 }
