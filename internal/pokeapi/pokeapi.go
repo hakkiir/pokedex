@@ -99,9 +99,6 @@ func Catch(url string, c cache.Cache) (Pokemon, error) {
 	//if values are cached, return cached values
 	if val, ok := c.Get(url); ok {
 		err := json.Unmarshal(val, &p)
-		//	if err != nil {
-		//		return l, err
-		//	}
 		fmt.Println()
 		fmt.Println("returned values from Cache!")
 		fmt.Println()
