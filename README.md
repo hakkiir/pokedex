@@ -1,6 +1,6 @@
 # Pokedex
 
-A command line Pokedex that fetches data from PokeAPI
+A command line Pokedex game that fetches data from PokeAPI
 
 ## Installation
 
